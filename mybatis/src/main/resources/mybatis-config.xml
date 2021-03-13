@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--calsspath路径：默认：resources文件夹-->
+    <properties resource="db.properties"/>   <!--1、全局配置文件!-->
+    <!--在 properties 元素体内定义的属性首先被读取。-->
+    <typeAliases>  <!-- 单个别名定义 -->
+        <typeAlias alias="user" type="com.bh.pojo.User"/>
+        <!-- 批量别名定义，扫描整个包下的类，别名为类名（首字母大写或小写都可以） -->
+        <package name="com.bh.pojo"/>
+    </typeAliases>
+    <!--4.typeAliases别名:类型别名是为 Java 类型命名的一个短的名字。
+    它只和 XML 配置有关，存在的意义仅在于用来减少类完全限定名的冗余。-->
+    <environments default="development">    <!--数据库配置环境-->
+        <environment id="development">
+            <!--使用 jdbc 事务管理-->
+            <transactionManager type="JDBC"/>  <!--开启事务！-->
+            <!--数据库连接-->
+            <dataSource type="POOLED">
+                <!-- POOLED：采用传统的javax.sql.DataSource规范中的连接池，mybatis中有针对规范的实现-->
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <!--<property name="url" value="jdbc:mysql://localhost:3306/springmvc-->
+                <!--?serverTimezone=GMT%2B8&amp;characterEncoding=utf-8&amp;useSSL=FALSE"/>-->
+                <!--:配置加上jdbc数据库连接时区设置. &amp;:在Usermapper.xml中用&amp代替分号，-->
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments><!-- 可配置多个environment-->
+    <mappers>
+        <mapper resource="mapper/UserMapper.xml"/> <!--加载 UserMapper.xml 文件-->
+        <mapper resource="mapper/UserMapper_.xml"/> <!--加载 UserMapper_.xml 文件-->
+        <mapper resource="mapper/OrdersCustomMapper.xml"/><!--加载OrdersCustomMapper.xml 文件-->
+        <mapper resource="mapper/mapper.xml"/><!--加载mapper.xml 文件-->
+    </mappers>
+</configuration>

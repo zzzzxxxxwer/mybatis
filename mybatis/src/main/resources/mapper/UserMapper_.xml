@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bh.dao.UserMapper">
+    <!--只要有Usermapper.xml接口文件进行映射、跳转，mapper.xml的namespace必须得对应接口类的全名（包括包名和类名）：
+    这个是必须要保证相同，通过Copy Reference来赋值路径名。Mapper 接口开发方法只需要编写 Mapper 接口（相当于 Dao 接口），
+    由 Mybatis 框架根据接口定义创建接口的动态代理对象，代理对象的方法类同 Dao 接口实现类方法。
+    Mapper接口：Mapper.xml 文件中的 namespace 与 mapper 接口的类路径相同。-->
+    <!-- 根据id获取用户信息 -->
+    <select id="findUserById" parameterType="int"
+            resultType="com.bh.pojo.User">
+ select * from user where id = #{id}
+</select>
+    <!-- 自定义条件查询用户列表 -->
+    <select id="findUserByName" parameterType="java.lang.String"
+            resultType="com.bh.pojo.User">
+     select * from user where username like '%${value}%'
+      </select>
+    <!-- 添加用户 -->
+    <insert
+            id="insertUser" parameterType="com.bh.pojo.User">
+        <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into user(username,birthday,sex,address) values(#{username},#{birthday},#{sex},#{address})
+    </insert>
+    <!--传递pojo对象综合查询用户信息 -->
+    <select id="findUserByUser" parameterType="user"
+            resultType="user">
+        select * from user where id=#{id} and username like '%${username}%'
+    </select>
+    <!--传递 HashMap 综合查询用户信息-->
+    <select id="findUserByHashMap" parameterType="java.util.Map"
+            resultType="com.bh.pojo.User">
+    select * from user where id=#{id} and username like '%${username}%'
+</select>
+    <!--输出简单类型-->
+    <select id="findUserByCount" parameterType="com.bh.pojo.User"
+            resultType="int">
+        select count(*) from user <!--查询表中一共有多少列-->
+    </select>
+    <!--根据 id 查询用户信息，使用 resultMap 输出-->
+    <select id="findUserByIdResultMap" parameterType="com.bh.pojo.User"
+            resultMap="userListResultMap">
+     select id id_,username username_,birthday birthday_ from user where id=#{value}
+</select>
+    <!--定义 resultMap,完成查询字段与 user 对象属性名称做对应关系,
+    type:最终映射的 java 对象,id:resultMap 的唯一标识 -->
+    <resultMap id="userListResultMap"
+               type="com.bh.pojo.User">
+        <!--id标签：查询结果集的唯一标识列（主键或是唯一标识）,column:sql 查询字段名（列名）,property:pojo 属性名-->
+        <id column="id_" property="id"/>
+        <result column="username_" property="username"/>
+        <result column="birthday_" property="birthday"/>
+    </resultMap>
+    <!--<id />：此属性表示查询结果集的唯一标识，非常重要。如果是多个字段为复合唯一约束则定义多个<id />。
+     property：表示类的属性。 column：表示 sql 查询到的字段名称。
+     column 与 property 放在一起表示将 sql 查询出来的字段映射到指定的 pojo 类属性。 <result />：普通结果，即 pojo 的属性。-->
+    <select id="findUserListone" parameterType="com.bh.pojo.UserQueryVo"
+            resultType="com.bh.pojo.User">
+        select * from user
+        <!--where 1=1 或者使用<where>标签：加where查询条件，根据sex、username进行匹配查询-->
+        <where>
+            <if test="userCustom!=null"><!--判断userCustom对象是否为空 -->
+                <if test="userCustom.sex!=null and userCustom.sex!=''">and user.sex=#{userCustom.sex}</if>
+                <if test="userCustom.username!=null and userCustom.username!=''">and user.username like
+                    '%${userCustom.username}%'
+                    <!--and拼接sql语句:模糊查询:接收方法中传过来的username值-->
+                </if>    <!-- 查询语句,userCustom.sex!=null、 userCustom.sex!=''":性别不等于空、空字符串:''"两个单引号一个双引号
+            userCustom.username!=null and userCustom.username!=''"：姓名不等于空、空字符串-->
+            </if>
+        </where>
+    </select>
+    <!--用户综合信息查询用户列表-->
+    <select id="findUserList" parameterType="com.bh.pojo.UserQueryVo" resultType="com.bh.pojo.User">
+        select * from user
+        <where>    <!-- where 1=1 或者使用<where>标签：加where查询条件，根据id进行匹配查询-->
+            <if test="ids!=null and ids.size>0"><!--<if:判断，ids不能为空并且ids.size>0-->
+                <foreach collection="ids" open=" and id in(" close=")" item="id" separator=",">
+                    <!--SELECT * FROM USERS WHERE username LIKE '%张%'  id IN (10,89,16):
+                    collection="ids":接收ids：list集合传过来的id值，：id IN (10,89,16)。open=" and id in("：用id字段查询in(1,10),
+                     close=")":以)结束， item="id"：以id字段进行查询， separator=","：以,进行分隔。-->
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!--传递 List类型 mapper.xml没有区别，唯一不同的是只有一个 List 参数时它的参数名为 list:parameterType="java.util.List"-->
+    <select id="selectUserByList" parameterType="java.util.List" resultType="com.bh.pojo.User"><!-- resultType="user":使用别名user
+    <typeAlias alias="user" type="com.bh.pojo.User"/>:在mybatis-congfig.xml中定义别名 -->
+        select * from user
+        <where> <!--查询所有后跟where条件-->
+            <!--传递List，List中是pojo-->
+            <if test="list!=null">
+                <foreach collection="list" item="item" open="and id in(" separator="," close=")">
+                    <!--collection="ids":接收ids：list集合传过来的id值，：id IN (10,89,16)。open=" and id in("：用id字段查询in(1,10),
+              close=")":以)结束， item="id"：以id字段进行查询， separator=","：以,进行分隔。-->
+                    #{item.id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!-- 传递数组综合查询用户信息 -->
+    <select id="selectUserByArray" parameterType="Object[]" resultType="com.bh.pojo.User">
+        select * from user
+        <where>   <!-- 传递数组 -->
+            <if test="array!=null">
+                <foreach collection="array" index="index" item="item" open="and id in(" separator="," close=")">
+                    #{item.id}
+                </foreach>
+            </if>
+        </where>
+        <!-- sql只接收一个数组参数，sql 解析参数名称 mybatis 固定为 array，如果数组是通过 pojo 传递到 sql 则参数的名称为 pojo 中的属性名。
+        index：为数组的下标。 item：为数组每个元素的名称，名称随意定义。open：循环开始 close：循环结束。separator：中间分隔输出-->
+    </select>
+    <!--传递单个数组（数组中是字符串类型）-->
+    <select id="selectUserByArraytwo" parameterType="Object[]" resultType="com.bh.pojo.User">
+        select * from user
+        <where>   <!-- 传递数组 -->
+            <if test="array!=null">
+                <foreach collection="array" index="index" item="item" open="and id in(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <!--修改数据-->
+    <update id="updateUser" parameterType="com.bh.pojo.User">
+        update user set username=#{username},birthday=#{birthday},sex=#{sex},
+        address=#{address}
+        where id=#{id}
+    </update>
+
+</mapper>

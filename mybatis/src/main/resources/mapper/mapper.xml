@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- ORM(对象关系映射) 映射文件 -->
+<!-- Mapper 动态代理方式 -->
+<!-- namespace:特点：值必须得是 UserMapper 接口方法的路径：com.bh.dao.mapper-->
+<mapper namespace="com.bh.dao.OrdersCustomMapper">
+    <!-- 根据id获取用户信息 -->
+    <select id="findUserById" parameterType="int" resultType="com.bh.pojo.User">
+<!-- id名称必须得与mapper接口文件中方法的名称相同，parameterType="int"：接口文件方法中传入参数：形参的数据类型，
+resultType="com.bh.pojo.User"：Mapper接口方法输出参数类型与 mapper.xml中定义的每个 sql查询语句的 resultType的类型相同-->
+        select * from user where id = #{id}<!--写入sql查询语句-->
+    </select>
+</mapper>
+

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bh.dao.OrdersCustomMapper">
+    <!--查询所有订单-->
+    <select id="findOrdersList"
+            resultType="com.bh.pojo.OrdersCustom">
+        select orders.*,user.username,user.address  from orders,user  where orders.user_id=user.id
+    </select>
+    <resultMap id="userOrderMap"
+               type="com.bh.pojo.Orders">
+        <!--id 必须有，mybatis 完成一对一查询过程中把 user 字段映射为 user 对象时需要 ,
+               property:pojo 属性名称 -->
+        <id property="id" column="id"/>
+        <result property="userId" column="userId"/>
+        <result property="number" column="number"/>
+        <association property="user" javaType="com.bh.pojo.User"><!--id为 user 属性-->
+            <id property="id" column="userId"/>
+            <result property="username" column="username"/>
+            <result property="address" column="address"/>
+        </association>
+    </resultMap>
+    <select id="findOrdersListResultMap"
+            resultMap="userOrderMap">
+  SELECT  orders.*,  user.username,  user.address  FROM  orders, user  WHERE orders.user_id = user.id
+</select>
+    <!--订单信息 resultMap-->
+    <!-- <resultMap id="userOrderDetailMap" type="com.bh.pojo.Orders">
+         <id property="id" column="id"/>
+         <result property="userId" column="user_id"/>
+         <result property="number" column="number"/>
+         <association property="user" javaType="com.bh.pojo.User">
+             <id property="id" column="user_id"/>
+             <result property="username" column="username"/>
+             <result property="address" column="address"/>
+         </association>
+         <collection property="orderdetails" ofType="com.bh.pojo.Orderdetail">
+             <id property="id" column="orderdetail_id"/>
+             <result property="itemsId" column="items_id"/>
+             <result property="itemsNum" column="items_num"/>
+         </collection>
+     </resultMap>-->
+    <!--一对多查询:查询订单及订单下的详情信息-->
+    <select id="findOrdersDetailList"
+            resultMap="userOrderDetailMap">
+     select orders.*,user.username,user.address, orderdetail.id orderdetail_id,orderdetail.items_id,orderdetail.items_num
+     from orders,user,orderdetail
+     where orders.user_id=user.id and orders.id=orderdetail.orders_id
+</select>
+    <!--订单信息 resultMap  使用继承方式，提高代码复用性  -->
+    <resultMap id="userOrderDetailMap" type="com.bh.pojo.Orders" extends="userOrderMap">
+        <collection property="orderdetails" ofType="com.bh.pojo.Orderdetail">
+            <!--collection 标签表示关联查询结果集。property:关联查询结果集存储在类 com.bh.pojo.Orders 的对应属性
+      ofType:指定查询结果集中的对象类型即 List 集合中对象类型-->
+            <id property="id" column="orderdetail_id"/>
+            <result property="itemsId" column="items_id"/>
+            <result property="itemsNum" column="items_num"/>
+        </collection>
+    </resultMap>
+    <!--查询用户所有信息数据-->
+    <select id="findUserOrderListResultMap" resultMap="userOrderListResultMap">
+     SELECT orders.*,USER.username,USER.address,orderdetail.id orderdetail_id,
+     orderdetail.items_id,orderdetail.items_num,
+     items.name items_name,items.detail items_detail
+     FROM orders,USER,orderdetail,items
+     WHERE orders.user_id = USER.id AND orders.id = orderdetail.orders_id AND orderdetail.items_id = items.id
+</select>
+    <!-- 多对多查询   查询用户信息、关联查询订单、订单明细信息、商品信息 -->
+    <resultMap type="com.bh.pojo.User" id="userOrderListResultMap">
+        <id column="user_id" property="id"/>
+        <result column="username" property="username"/>
+        <collection property="orders" ofType="com.bh.pojo.Orders">
+            <id column="id" property="id"/>
+            <result property="number" column="number"/>
+            <collection property="orderdetails" ofType="com.bh.pojo.Orderdetail">
+                <id column="orderdetail_id" property="id"/>
+                <result property="ordersId" column="id"/>
+                <result property="itemsId" column="items_id"/>
+                <result property="itemsNum" column="items_num"/>
+                <association property="items" javaType="com.bh.pojo.Items">
+                    <id column="items_id" property="id"/>
+                    <result column="items_name" property="name"/>
+                    <result column="items_detail" property="detail"/>
+                </association>
+            </collection>
+        </collection>
+    </resultMap>
+    <select id="findOrdersList3" resultMap="userOrderMap2">  SELECT  orders.*  FROM  orders </select>
+    <!-- 订单信息resultmap -->
+    <resultMap type="com.bh.pojo.Orders" id="userOrderMap2">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="number" column="number"/>
+        <association property="user" javaType="com.bh.pojo.User" /><!--select="findUserById" column="user_id"-->
+    </resultMap>
+</mapper>

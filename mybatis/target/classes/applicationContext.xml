@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://mybatis.org/schema/mybatis-spring
+    http://mybatis.org/schema/mybatis-spring.xsd">
+    <!--读取配置数据源的文件-->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!--2、数据库连接池，id 值固定-dataSource，class 是连接池类全路径-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          destroy-method="close">
+        <!--配置基本信息-->
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxActive" value="10"/>
+    </bean>
+    <!--3、整合 spring,mybatis 框架,把 SqlSession 等对象的创建交给 spring 容器
+    id 值固定-sqlSessionFactory-->
+    <!-- 配置MyBatis工厂SqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 指定核MyBatis心配置文件位置-->
+        <property name="configLocation" value="classpath:mybatis-config_spring.xml"/>
+        <!--3.3 扫描映射文件，读取 sql 语句-->
+        <!--如果两个文件在同一文件下可以不用配置-->
+        <property name="mapperLocations" value="mapper/*.xml"/>
+    </bean>
+    <!-- 配置mapper扫描器-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.bh.dao"/>
+    </bean>
+    <!--开启注解-->
+    <context:component-scan base-package="com.bh"/>
+</beans>
